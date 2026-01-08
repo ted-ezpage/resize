@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>圖片批次處理工具 - Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      padding: 24px 32px;
+    }
+
+    .card-header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .card-header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .card-body {
+      padding: 32px;
+    }
+
+    .warning-banner {
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .warning-banner.hidden {
+      display: none;
+    }
+
+    .warning-icon {
+      color: #f59e0b;
+      font-size: 24px;
+    }
+
+    .warning-text {
+      color: #92400e;
+      font-size: 14px;
+    }
+
+    .action-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-primary:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .folder-name {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .progress-section {
+      margin-bottom: 24px;
+    }
+
+    .progress-section.hidden {
+      display: none;
+    }
+
+    .progress-text {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .results-section {
+      margin-top: 24px;
+    }
+
+    .results-section.hidden {
+      display: none;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .results-header h2 {
+      font-size: 18px;
+      color: #059669;
+      font-weight: 600;
+    }
+
+    .check-icon {
+      color: #059669;
+      font-size: 24px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .stat-value.success {
+      color: #6366f1;
+    }
+
+    .stat-value.warning {
+      color: #f59e0b;
+    }
+
+    .non-square-section {
+      margin-top: 24px;
+    }
+
+    .non-square-section.hidden {
+      display: none;
+    }
+
+    .non-square-header {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f59e0b;
+      margin-bottom: 12px;
+    }
+
+    .image-list {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .image-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e7eb;
+      background: white;
+    }
+
+    .image-item:last-child {
+      border-bottom: none;
+    }
+
+    .image-item:hover {
+      background: #f9fafb;
+    }
+
+    .thumbnail {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+    }
+
+    .image-info {
+      flex: 1;
+    }
+
+    .image-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #111827;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    .image-dimensions {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .reset-btn {
+      margin-top: 24px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px 12px;
+      }
+
+      .card-header {
+        padding: 20px;
+      }
+
+      .card-body {
+        padding: 20px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .action-section {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h1>🖼️ 圖片批次處理工具</h1>
+        <p>選擇資料夾，自動將 1:1 比例的圖片 resize 成 200x200</p>
+      </div>
+
+      <div class="card-body">
+        <!-- 瀏覽器相容性警告 -->
+        <div id="warningBanner" class="warning-banner hidden">
+          <span class="warning-icon">⚠️</span>
+          <span class="warning-text">
+            您的瀏覽器不支援 File System Access API，請使用 Chrome 或 Edge 瀏覽器。
+          </span>
+        </div>
+
+        <!-- 操作區域 -->
+        <div class="action-section">
+          <button id="selectFolderBtn" class="btn btn-primary">
+            📁 選擇資料夾
+          </button>
+          <span id="folderName" class="folder-name"></span>
+        </div>
+
+        <!-- 處理進度 -->
+        <div id="progressSection" class="progress-section hidden">
+          <p id="progressText" class="progress-text">處理中... 0 / 0</p>
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- 處理結果 -->
+        <div id="resultsSection" class="results-section hidden">
+          <div class="results-header">
+            <span class="check-icon">✅</span>
+            <h2>處理完成</h2>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <p class="stat-label">成功處理 (1:1 比例)</p>
+              <p id="successCount" class="stat-value success">0</p>
+            </div>
+            <div class="stat-card">
+              <p class="stat-label">非 1:1 比例</p>
+              <p id="nonSquareCount" class="stat-value warning">0</p>
+            </div>
+          </div>
+
+          <!-- 非 1:1 比例圖片清單 -->
+          <div id="nonSquareSection" class="non-square-section hidden">
+            <h3 class="non-square-header">⚠️ 非 1:1 比例圖片清單：</h3>
+            <div id="imageList" class="image-list"></div>
+          </div>
+
+          <button id="resetBtn" class="btn btn-secondary reset-btn">
+            🔄 重新處理
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DOM 元素
+    const warningBanner = document.getElementById('warningBanner');
+    const selectFolderBtn = document.getElementById('selectFolderBtn');
+    const folderNameEl = document.getElementById('folderName');
+    const progressSection = document.getElementById('progressSection');
+    const progressText = document.getElementById('progressText');
+    const progressFill = document.getElementById('progressFill');
+    const resultsSection = document.getElementById('resultsSection');
+    const successCountEl = document.getElementById('successCount');
+    const nonSquareCountEl = document.getElementById('nonSquareCount');
+    const nonSquareSection = document.getElementById('nonSquareSection');
+    const imageList = document.getElementById('imageList');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 支援的圖片格式
+    const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+
+    // 縮圖最大尺寸
+    const THUMBNAIL_MAX_SIZE = 80;
+
+    // 檢查瀏覽器支援
+    function checkBrowserSupport() {
+      const isSupported = 'showDirectoryPicker' in window;
+      if (!isSupported) {
+        warningBanner.classList.remove('hidden');
+        selectFolderBtn.disabled = true;
+      }
+      return isSupported;
+    }
+
+    // 檢查是否為圖片檔案
+    function isImageFile(fileName) {
+      const lowerName = fileName.toLowerCase();
+      return IMAGE_EXTENSIONS.some(ext => lowerName.endsWith(ext));
+    }
+
+    // 載入圖片 (使用 createImageBitmap)
+    async function loadImageBitmap(file) {
+      try {
+        const bitmap = await createImageBitmap(file);
+        return {
+          bitmap,
+          width: bitmap.width,
+          height: bitmap.height
+        };
+      } catch (err) {
+        throw new Error(`無法載入圖片 ${file.name}: ${err.message}`);
+      }
+    }
+
+    // 使用 Canvas resize 圖片
+    function resizeImage(bitmap, targetSize) {
+      return new Promise(resolve => {
+        const canvas = document.createElement('canvas');
+        canvas.width = targetSize;
+        canvas.height = targetSize;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(bitmap, 0, 0, targetSize, targetSize);
+
+        canvas.toBlob(blob => resolve(blob), 'image/png', 1.0);
+      });
+    }
+
+    // 生成縮圖 DataURL
+    function generateThumbnail(bitmap) {
+      const canvas = document.createElement('canvas');
+
+      let thumbWidth, thumbHeight;
+      if (bitmap.width > bitmap.height) {
+        thumbWidth = THUMBNAIL_MAX_SIZE;
+        thumbHeight = Math.round((bitmap.height / bitmap.width) * THUMBNAIL_MAX_SIZE);
+      } else {
+        thumbHeight = THUMBNAIL_MAX_SIZE;
+        thumbWidth = Math.round((bitmap.width / bitmap.height) * THUMBNAIL_MAX_SIZE);
+      }
+
+      canvas.width = thumbWidth;
+      canvas.height = thumbHeight;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return '';
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(bitmap, 0, 0, thumbWidth, thumbHeight);
+
+      return canvas.toDataURL('image/jpeg', 0.7);
+    }
+
+    // 計算最大公因數
+    function getGCD(a, b) {
+      return b === 0 ? a : getGCD(b, a % b);
+    }
+
+    // 取得資料夾內所有圖片檔案
+    async function getAllImageFiles(dirHandle) {
+      const files = [];
+      for await (const entry of dirHandle.values()) {
+        if (entry.kind === 'file' && isImageFile(entry.name)) {
+          files.push({ handle: entry, name: entry.name });
+        }
+      }
+      return files;
+    }
+
+    // 更新進度
+    function updateProgress(current, total) {
+      progressText.textContent = `處理中... ${current} / ${total}`;
+      const percentage = total > 0 ? (current / total) * 100 : 0;
+      progressFill.style.width = `${percentage}%`;
+    }
+
+    // 渲染非 1:1 圖片清單
+    function renderNonSquareList(images) {
+      imageList.innerHTML = images.map(img => `
+        <div class="image-item">
+          <img src="${img.thumbnail}" alt="${img.name}" class="thumbnail">
+          <div class="image-info">
+            <p class="image-name">${img.name}</p>
+            <p class="image-dimensions">尺寸: ${img.width} x ${img.height} (比例: ${img.ratio})</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 重置狀態
+    function resetState() {
+      folderNameEl.textContent = '';
+      progressSection.classList.add('hidden');
+      resultsSection.classList.add('hidden');
+      nonSquareSection.classList.add('hidden');
+      progressFill.style.width = '0%';
+      imageList.innerHTML = '';
+      selectFolderBtn.disabled = false;
+    }
+
+    // 主要處理函數
+    async function handleSelectFolder() {
+      try {
+        // 選擇資料夾
+        const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+
+        folderNameEl.textContent = `已選擇: ${dirHandle.name}`;
+        selectFolderBtn.disabled = true;
+        progressSection.classList.remove('hidden');
+        resultsSection.classList.add('hidden');
+
+        // 取得所有圖片檔案
+        const imageFiles = await getAllImageFiles(dirHandle);
+        const totalCount = imageFiles.length;
+
+        if (totalCount === 0) {
+          progressSection.classList.add('hidden');
+          resultsSection.classList.remove('hidden');
+          successCountEl.textContent = '0';
+          nonSquareCountEl.textContent = '0';
+          selectFolderBtn.disabled = false;
+          return;
+        }
+
+        // 建立 resize 資料夾
+        const resizeDir = await dirHandle.getDirectoryHandle('resize', { create: true });
+
+        let processedCount = 0;
+        let successCount = 0;
+        const nonSquareImages = [];
+
+        // 處理每個圖片
+        for (const { handle: fileHandle, name } of imageFiles) {
+          try {
+            const file = await fileHandle.getFile();
+            const { bitmap, width, height } = await loadImageBitmap(file);
+
+            if (width !== height) {
+              // 非 1:1 比例
+              const gcd = getGCD(width, height);
+              const thumbnail = generateThumbnail(bitmap);
+              nonSquareImages.push({
+                name,
+                width,
+                height,
+                ratio: `${width / gcd}:${height / gcd}`,
+                thumbnail
+              });
+              bitmap.close();
+            } else {
+              // 1:1 比例
+              let blobToSave = null;
+
+              if (width === 200 && height === 200) {
+                blobToSave = file;
+              } else {
+                blobToSave = await resizeImage(bitmap, 200);
+              }
+
+              bitmap.close();
+
+              if (blobToSave) {
+                const newFileHandle = await resizeDir.getFileHandle(name, { create: true });
+                const writable = await newFileHandle.createWritable();
+                await writable.write(blobToSave);
+                await writable.close();
+                successCount++;
+              }
+            }
+          } catch (err) {
+            console.error(`處理檔案 ${name} 時發生錯誤:`, err);
+          }
+
+          processedCount++;
+          updateProgress(processedCount, totalCount);
+        }
+
+        // 顯示結果
+        progressSection.classList.add('hidden');
+        resultsSection.classList.remove('hidden');
+        successCountEl.textContent = successCount;
+        nonSquareCountEl.textContent = nonSquareImages.length;
+
+        if (nonSquareImages.length > 0) {
+          nonSquareSection.classList.remove('hidden');
+          renderNonSquareList(nonSquareImages);
+        } else {
+          nonSquareSection.classList.add('hidden');
+        }
+
+        selectFolderBtn.disabled = false;
+
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('處理資料夾時發生錯誤:', err);
+          alert('處理時發生錯誤: ' + err.message);
+        }
+        selectFolderBtn.disabled = false;
+        progressSection.classList.add('hidden');
+      }
+    }
+
+    // 初始化
+    function init() {
+      checkBrowserSupport();
+      selectFolderBtn.addEventListener('click', handleSelectFolder);
+      resetBtn.addEventListener('click', resetState);
+    }
+
+    // 啟動
+    init();
+  </script>
+</body>
+</html>
